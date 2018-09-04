@@ -1,0 +1,7 @@
+.idea
+.ipynb_checkpoints
+.cache
+demo/spark-warehouse/
+**/__pycache__/
+.pytest_cache
+
