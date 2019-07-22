@@ -50,13 +50,13 @@ Source/target storage options:
 - jdbc (database connection options to be included)
 - hive (default dataset-store-format from spark)
 
-Teradata to Hive example configuration:
-``` hocon
+### Teradata to Hive example:
+```
 source: {
   storage: jdbc
   query: "(select * from db.target_table where dt = '2016-01-01') a"
   conn: {
-    include "conf/db.json"
+    url: jdbc:teradata://USER:PASSWORD@HOST:PORT/DATABASE
   }
   partition-column: hash_id
   num-partitions: 50
@@ -75,8 +75,8 @@ spark: {
 }
 ```
 
-csv to Teradata example:
-``` hocon
+### CSV to Teradata example:
+```
 source: {
   storage: single-csv
   query: 'data/table.csv'
@@ -90,7 +90,7 @@ target {
   query: db.target_table
   write-mode: overwrite
   conn: {
-    include "conf/db.json"
+    url: jdbc:teradata://USER:PASSWORD@HOST:PORT/DATABASE
   }
 }
 
@@ -98,6 +98,33 @@ spark: {
   include "conf/spark-yarn.conf"
   spark-prop.spark.driver.extraClassPath: "terajdbc4.jar:tdgssconfig.jar"
   jars: [terajdbc4.jar, tdgssconfig.jar]
+}
+```
+
+### Greenplum to Hive example:
+```
+source: {
+  storage: jdbc
+  query: "jdbc_schema.jdbc_table"
+  conn: {
+    url: jdbc:postgres://USER:PASSWORD@HOST:PORT/DATABASE 
+  }
+  partition-column: gp_segment_id  # Greenplum segment ID
+  num-partitions: 50
+  lower-bound: 0
+  upper-bound: 95
+}
+
+target {
+  storage: hive
+  query: db.target_table
+  write-mode: overwrite
+}
+
+spark: {
+  include "conf/spark-yarn.conf"
+  spark-prop.spark.driver.extraClassPath: postgresql-42.2.6.jar
+  jars: postgresql-42.2.6.jar
 }
 ```
 
@@ -109,7 +136,7 @@ Requires:
 - data source
 - current_dt - datetime scores were calculated
 
-Example configuration:
+### Example:
 ```
 source: {
   storage: hive
@@ -149,13 +176,13 @@ Supported data storages:
     - sample
     - limit
 
-Example JDBC data source:
+### Example JDBC data source:
 ```
 source {
   storage: jdbc
   query: somedb.some_table
   conn: {
-    include ../conf/teradata.json
+    url: jdbc:teradata://USER:PASSWORD@HOST:PORT/DATABASE
   }
   partition-column: hash_id
   num-partitions: 50
@@ -193,7 +220,7 @@ target: {
 
 Pipeline file location is considered to be relative to the main configuration file directory
 
-Example:
+### Example:
 ```json
 {
   "train-dataset": {
@@ -205,7 +232,7 @@ Example:
 }
 ```
 
-Load model definition dataset from JDBC data source:
+### Load model definition dataset from JDBC data source:
 ```hocon
 model-definfition: {
   include model-2015-11.json
@@ -213,7 +240,7 @@ model-definfition: {
 
 source : ${model-definfition.train-dataset} {
   conn: {
-    include ../conf/teradata.json
+    url: jdbc:teradata://USER:PASSWORD@HOST:PORT/DATABASE
   }
   partition-column: hash_id
   num-partitions: 50
