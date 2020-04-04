@@ -33,10 +33,12 @@ def run_scorer(sc, sqc, conf):
     target_class_names = conf.get('target-class-names', None)
     code_in_pickle = conf.get('code-in-pickle', False)
 
+    model = joblib.load(os.path.expanduser(conf['model-path']))
+
     score_df = spark_utils.score(
         sc=sc,
         sdf=sdf,
-        model_path=os.path.expanduser(conf['model-path']),
+        model=model,
         cols_to_save=cols_to_save,
         target_class_names=target_class_names,
         code_in_pickle=code_in_pickle

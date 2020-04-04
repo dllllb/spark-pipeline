@@ -38,23 +38,20 @@ def block_iterator(iterator, size):
         yield bucket
 
 
-def score(sc, sdf, model_path, cols_to_save, target_class_names=None, code_in_pickle=False):
+def score(sc, sdf, model, cols_to_save=None, target_class_names=None, code_in_pickle=False):
     import json
-    from sklearn.externals import joblib
     import pandas as pd
 
     if code_in_pickle:
         import dill
-        with open(model_path) as f:
-            model = dill.load(f)
         model_bc = sc.broadcast(dill.dumps(model))
     else:
-        model = joblib.load(model_path)
         model_bc = sc.broadcast(model)
 
     col_bc = sc.broadcast(sdf.columns)
 
     def block_classify(iterator):
+        from sklearn.base import is_classifier, is_regressor
 
         if code_in_pickle:
             mdl = dill.loads(model_bc.value)
@@ -63,27 +60,43 @@ def score(sc, sdf, model_path, cols_to_save, target_class_names=None, code_in_pi
 
         for features in block_iterator(iterator, 10000):
             features_df = pd.DataFrame(list(features), columns=col_bc.value)
-            existing_cols_to_save = list(set(cols_to_save).intersection(features_df.columns))
 
-            pred = mdl.predict_proba(features_df)
-
-            if pred.shape[1] == 2:
-                res_df = features_df[existing_cols_to_save].copy()
-                if target_class_names is not None:
-                    res_df['label'] = target_class_names[1]
-                else:
-                    res_df['label'] = 'positive'
-                res_df['target_proba'] = pred[:, 1]
-            elif target_class_names is not None:
-                sub_dfs = []
-                for i, label in enumerate(target_class_names):
-                    sub_df = features_df[existing_cols_to_save].copy()
-                    sub_df['target_proba'] = pred[:, i]
-                    sub_df['label'] = label
-                    sub_dfs.append(sub_df)
-                res_df = pd.concat(sub_dfs)
+            if cols_to_save is None:
+                existing_cols_to_save = []
             else:
-                raise AttributeError('target class names are not set')
+                existing_cols_to_save = list(set(cols_to_save).intersection(features_df.columns))
+
+            if len(existing_cols_to_save) == 0:
+                base_res_df = features_df[existing_cols_to_save]
+            else:
+                base_res_df = pd.DataFrame()
+
+            if is_classifier(mdl):
+                pred = mdl.predict_proba(features_df)
+
+                if pred.shape[1] == 2:
+                    res_df = base_res_df.copy()
+                    if target_class_names is not None:
+                        res_df['label'] = target_class_names[1]
+                    else:
+                        res_df['label'] = 'positive'
+                    res_df['target_proba'] = pred[:, 1]
+                elif target_class_names is not None:
+                    sub_dfs = []
+                    for i, label in enumerate(target_class_names):
+                        sub_df = base_res_df.copy()
+                        sub_df['target_proba'] = pred[:, i]
+                        sub_df['label'] = label
+                        sub_dfs.append(sub_df)
+                    res_df = pd.concat(sub_dfs)
+                else:
+                    raise AttributeError('target class names are not set')
+            elif is_regressor(mdl):
+                res_df = base_res_df.copy()
+                res_df['pred'] = mdl.predict(features_df)
+            else:
+                res_df = base_res_df.copy()
+                res_df['pred'] = mdl(features_df)
 
             for e in json.loads(res_df.to_json(orient='records')):
                 yield e
@@ -351,6 +364,8 @@ def init_session(config, app=None, return_context=False, overrides=None, use_ses
             base_conf = ConfigFactory.parse_file(config, resolve=False)
         else:
             base_conf = ConfigFactory.parse_string(config, resolve=False)
+    elif isinstance(config, dict):
+        base_conf = ConfigFactory.from_dict(config)
     else:
         base_conf = config
 
@@ -358,7 +373,8 @@ def init_session(config, app=None, return_context=False, overrides=None, use_ses
         over_conf = ConfigFactory.parse_string(overrides)
         conf = over_conf.with_fallback(base_conf)
     else:
-        conf = ConfigParser.resolve_substitutions(base_conf)
+        conf = base_conf
+        ConfigParser.resolve_substitutions(conf)
 
     res = init_spark(conf, app, use_session)
 

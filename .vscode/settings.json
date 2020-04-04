@@ -1,0 +1,9 @@
+{
+    "python.pythonPath": "/Users/dmitri/anaconda3/bin/python",
+    "python.testing.pytestArgs": [
+        "sparktools"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true
+}
