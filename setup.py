@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
     
 setuptools.setup(
     name="spark-pipeline",
-    version="0.0.3",
+    version="0.0.4",
     author="Dmitri Babaev",
     author_email="dmitri.babaev@gmail.com",
     description="Data Science oriented tools, mostly for Apache Spark",
@@ -21,4 +21,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
+    install_requires=[
+        'pyspark>=2',
+        'pandas>=0.23'
+    ]
 )
