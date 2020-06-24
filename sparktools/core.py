@@ -27,6 +27,56 @@ def limit(sdf, n_records):
     return res
 
 
+def score_udf(sdf, model, target_class_names=None, cols_to_save=None):
+    schema = ', '.join([f'{col} {dtype}' for col, dtype in sdf.selectExpr(cols_to_save).dtypes])
+    schema += ', target_proba float, label string'
+
+    def _score_udf(it):
+        for features_df in it:
+            pred = pred_post_process(features_df, model, target_class_names, cols_to_save)
+            yield pred
+    
+    scores = sdf.mapInPandas(_score_udf, schema)
+    return scores
+
+
+def pred_post_process(features_df, mdl, target_class_names=None, cols_to_save=None):
+    from sklearn.base import is_classifier, is_regressor
+    import pandas as pd
+
+    if cols_to_save is not None:
+        existing_cols_to_save = list(set(cols_to_save).intersection(features_df.columns))
+        res_df = features_df[existing_cols_to_save].copy()
+    else:
+        res_df = pd.DataFrame()
+
+    if is_classifier(mdl):
+        pred = mdl.predict_proba(features_df)
+
+        if pred.shape[1] == 2:
+            if target_class_names is not None:
+                res_df['label'] = target_class_names[1]
+            else:
+                res_df['label'] = 'positive'
+            res_df['target_proba'] = pred[:, 1]
+        elif target_class_names is not None:
+            sub_dfs = []
+            for i, label in enumerate(target_class_names):
+                sub_df = res_df.copy()
+                sub_df['target_proba'] = pred[:, i]
+                sub_df['label'] = label
+                sub_dfs.append(sub_df)
+            res_df = pd.concat(sub_dfs)
+        else:
+            raise AttributeError('target class names are not set')
+    elif is_regressor(mdl):
+        res_df['pred'] = mdl.predict(features_df)
+    else:
+        res_df['pred'] = mdl(features_df)
+
+    return res_df
+
+
 def block_iterator(iterator, size):
     bucket = list()
     for e in iterator:
@@ -61,42 +111,7 @@ def score(sc, sdf, model, cols_to_save=None, target_class_names=None, code_in_pi
         for features in block_iterator(iterator, 10000):
             features_df = pd.DataFrame(list(features), columns=col_bc.value)
 
-            if cols_to_save is None:
-                existing_cols_to_save = []
-            else:
-                existing_cols_to_save = list(set(cols_to_save).intersection(features_df.columns))
-
-            if len(existing_cols_to_save) == 0:
-                base_res_df = features_df[existing_cols_to_save]
-            else:
-                base_res_df = pd.DataFrame()
-
-            if is_classifier(mdl):
-                pred = mdl.predict_proba(features_df)
-
-                if pred.shape[1] == 2:
-                    res_df = base_res_df.copy()
-                    if target_class_names is not None:
-                        res_df['label'] = target_class_names[1]
-                    else:
-                        res_df['label'] = 'positive'
-                    res_df['target_proba'] = pred[:, 1]
-                elif target_class_names is not None:
-                    sub_dfs = []
-                    for i, label in enumerate(target_class_names):
-                        sub_df = base_res_df.copy()
-                        sub_df['target_proba'] = pred[:, i]
-                        sub_df['label'] = label
-                        sub_dfs.append(sub_df)
-                    res_df = pd.concat(sub_dfs)
-                else:
-                    raise AttributeError('target class names are not set')
-            elif is_regressor(mdl):
-                res_df = base_res_df.copy()
-                res_df['pred'] = mdl.predict(features_df)
-            else:
-                res_df = base_res_df.copy()
-                res_df['pred'] = mdl(features_df)
+            res_df = pred_post_process(features_df, mdl, target_class_names, cols_to_save)
 
             for e in json.loads(res_df.to_json(orient='records')):
                 yield e
