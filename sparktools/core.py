@@ -29,18 +29,22 @@ def limit(sdf, n_records):
 
 def score_udf(sdf, model, target_class_names=None, cols_to_save=None):
     schema = ', '.join([f'{col} {dtype}' for col, dtype in sdf.selectExpr(cols_to_save).dtypes])
-    schema += ', target_proba float, label string'
+    schema += ', '
+    if target_class_names is None or len(target_class_names) < 3:
+        schema += 'target_proba float'
+    else:
+        schema += ', '.join([f'{label} float' for label in target_class_names])
 
     def _score_udf(it):
         for features_df in it:
-            pred = pred_post_process(features_df, model, target_class_names, cols_to_save)
+            pred = predict(features_df, model, target_class_names, cols_to_save)
             yield pred
     
     scores = sdf.mapInPandas(_score_udf, schema)
     return scores
 
 
-def pred_post_process(features_df, mdl, target_class_names=None, cols_to_save=None):
+def predict(features_df, mdl, target_class_names=None, cols_to_save=None):
     from sklearn.base import is_classifier, is_regressor
     import pandas as pd
 
@@ -54,25 +58,17 @@ def pred_post_process(features_df, mdl, target_class_names=None, cols_to_save=No
         pred = mdl.predict_proba(features_df)
 
         if pred.shape[1] == 2:
-            if target_class_names is not None:
-                res_df['label'] = target_class_names[1]
-            else:
-                res_df['label'] = 'positive'
             res_df['target_proba'] = pred[:, 1]
-        elif target_class_names is not None:
-            sub_dfs = []
-            for i, label in enumerate(target_class_names):
-                sub_df = res_df.copy()
-                sub_df['target_proba'] = pred[:, i]
-                sub_df['label'] = label
-                sub_dfs.append(sub_df)
-            res_df = pd.concat(sub_dfs)
         else:
-            raise AttributeError('target class names are not set')
+            if target_class_names is None:
+                target_class_names =[f'class{i}' for i in range(pred.shape[1])]
+
+            for i, label in enumerate(target_class_names):
+                 res_df[label] = pred[:, i]
     elif is_regressor(mdl):
         res_df['pred'] = mdl.predict(features_df)
     else:
-        res_df['pred'] = mdl(features_df)
+        raise AttributeError('unknown model type')
 
     return res_df
 
@@ -111,7 +107,7 @@ def score(sc, sdf, model, cols_to_save=None, target_class_names=None, code_in_pi
         for features in block_iterator(iterator, 10000):
             features_df = pd.DataFrame(list(features), columns=col_bc.value)
 
-            res_df = pred_post_process(features_df, mdl, target_class_names, cols_to_save)
+            res_df = predict(features_df, mdl, target_class_names, cols_to_save)
 
             for e in json.loads(res_df.to_json(orient='records')):
                 yield e
