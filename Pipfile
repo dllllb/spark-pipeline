@@ -6,11 +6,13 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 jupyter = "*"
+tdigest = "*"
 
 [packages]
 pandas = ">=0.23"
 pyspark = ">=3"
 matplotlib = ">=3"
+scikit-learn = ">=0.23"
 
 [requires]
 python_version = "3.8"
