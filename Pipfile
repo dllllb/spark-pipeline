@@ -13,6 +13,7 @@ pandas = ">=0.23"
 pyspark = ">=3"
 matplotlib = ">=3"
 scikit-learn = ">=0.23"
+spark-pipeline = {editable = true, path = "."}
 
 [requires]
 python_version = "3.8"

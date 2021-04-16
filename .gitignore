@@ -9,3 +9,4 @@ demo/spark-warehouse/
 build
 dist
 *.egg-info
+pyproject.toml
