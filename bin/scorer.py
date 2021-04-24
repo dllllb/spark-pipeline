@@ -2,8 +2,11 @@ import argparse
 import os
 import sys
 import time
+import joblib
 
 from pyhocon import ConfigFactory
+
+import sparktools.core as spark_utils
 
 
 def run_scorer(sc, sqc, conf):
@@ -44,7 +47,7 @@ def run_scorer(sc, sqc, conf):
         code_in_pickle=code_in_pickle
     ).cache()
 
-    model_name, model_extension = os.path.splitext(os.path.basename(conf['model-path']))
+    model_name, _ = os.path.splitext(os.path.basename(conf['model-path']))
     current_dt = time.strftime("%Y-%m-%dT%H-%M")
 
     score_df = score_df.selectExpr(
@@ -63,10 +66,6 @@ def run_scorer(sc, sqc, conf):
 
 
 if __name__ == "__main__":
-    module_path = os.path.realpath(__file__)
-    root_dir = os.path.dirname(os.path.dirname(module_path))
-    sys.path.append(root_dir)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--conf', required=True)
     args, overrides = parser.parse_known_args()
@@ -75,8 +74,6 @@ if __name__ == "__main__":
     overrides = ','.join(overrides)
     over_conf = ConfigFactory.parse_string(overrides)
     conf = over_conf.with_fallback(file_conf)
-
-    import sparktools.core as spark_utils
 
     sc, sqc = spark_utils.init_session(conf['spark'], app=os.path.basename(args.conf), return_context=True)
 

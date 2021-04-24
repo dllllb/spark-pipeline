@@ -294,7 +294,7 @@ def init_spark(config, app=None, use_session=False):
         os.environ['YARN_CONF_DIR'] = config['yarn-conf-dir']
 
     if 'spark-classpath' in config:
-        # can be used to use external folder with Hive configuration
+        # can be used to set external folder with Hive configuration
         # e. g. spark-classpath='/etc/hive/conf.cloudera.hive1'
         os.environ['SPARK_CLASSPATH'] = config['spark-classpath']
 
@@ -421,7 +421,7 @@ def jdbc_load(
     upper_bound=None,fetch_size=10000000
 ):
     import re
-    if re.match('\s*\(.+\)\s+as\s+\w+\s*', query):
+    if re.match(r'\s*\(.+\)\s+as\s+\w+\s*', query):
         _query = query
     else:
         _query = '({}) as a'.format(query)
@@ -477,7 +477,7 @@ def hive_to_pandas(query, tmpdir='.', verbose=False):
         if verbose:
             print('cmd: {}'.format(cmd))
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-        output, error = process.communicate()
+        process.communicate()
         df = pd.read_csv(td.name, sep='\t')
         if verbose:
             print('df shape: {}'.format(df.shape))
@@ -538,10 +538,10 @@ def proportion_samples(sdf, proportions_sdf, count_column='rows_count'):
     from pyspark.sql.window import Window
     groupers = [c for c in proportions_sdf.columns if c != count_column]
 
-    sampled = sdf.join(proportions_sdf, groupers, how='inner') \
-        .withColumn('rownum',
-                    F.rowNumber().over(Window.partitionBy(groupers))) \
-        .filter(F.col('rownum') <= F.col(count_column)).drop(count_column).drop('rownum')
+    sampled = sdf.join(proportions_sdf, groupers, how='inner').withColumn(
+        'rownum',
+        F.rowNumber().over(Window.partitionBy(groupers))
+    ).filter(
+        F.col('rownum') <= F.col(count_column)
+    ).drop(count_column).drop('rownum')
     return sampled
-
-

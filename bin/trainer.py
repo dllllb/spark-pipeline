@@ -2,12 +2,12 @@ import argparse
 import importlib
 import os
 import sys
-from os.path import dirname, join as path_join
+import time
+import joblib
 
 from pyhocon import ConfigFactory
 
-import time
-from sklearn.externals import joblib
+import sparktools.core as spark_utils
 
 start = time.time()
 
@@ -15,12 +15,6 @@ print('{tm} ------------------- {nm} started'.format(
     tm=time.strftime("%Y-%m-%d %H:%M:%S"),
     nm=os.path.basename(__file__)
 ))
-
-module_path = os.path.realpath(__file__)
-root_dir = dirname(dirname(module_path))
-sys.path.append(path_join(root_dir, 'dstools'))
-
-import sparktools.core as spark_utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--conf', required=True)
