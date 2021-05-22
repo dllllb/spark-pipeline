@@ -16,6 +16,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv
         pipenv install --dev
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'adopt'
     - name: Test with pytest
       run: |
         pipenv run pytest
