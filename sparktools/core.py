@@ -68,7 +68,7 @@ def predict(features_df, mdl, target_class_names=None, cols_to_save=None):
     elif is_regressor(mdl):
         res_df['pred'] = mdl.predict(features_df)
     else:
-        raise AttributeError('unknown model type')
+        res_df['pred'] = mdl(features_df)
 
     return res_df
 
