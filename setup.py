@@ -23,6 +23,8 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'pyspark>=2',
-        'pandas>=0.23'
+        'pandas>=0.23',
+        'dill',
+        'pyhocon'
     ]
 )
