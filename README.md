@@ -1,14 +1,14 @@
 Data Science oriented tools, mostly for Apache Spark
 
 - The pipepline for using Python ML models together with Apache Spark
-- Command-line tools (see [readme](bin/README.md))
+- Command-line tools
 - *demo*: usage demos in form of Jupyter notebooks
   - model inference on cluster: [demo/score-sklearn.ipynb](demo/score-sklearn.ipynb)
   - quick dataset distribution change detection: [demo/datadiff.ipynb](demo/datadiff.ipynb)
 
 # Command-line tools
 
-## python -m scorer
+## python -m sparktools.scorer
 
 Use saved model to calculate prediction scores for a large dataset. Calculation is done in parallel on Spark cluster.
 
@@ -33,7 +33,7 @@ Result fields:
 - model_name; model file name
 - current_dt; scoring date + time
 
-## python -m trainer
+## python -m sparktools.trainer
 
 Train an ML model and store it locally in binary form
 
@@ -42,7 +42,7 @@ Required config entries:
 - model definition
 - model write location
 
-## python -m mover
+## python -m sparktools.mover
 
 Move data between source and target storages
 
