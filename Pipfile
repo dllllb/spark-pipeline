@@ -10,10 +10,12 @@ tdigest = "*"
 pytest = "*"
 
 [packages]
-pandas = ">=0.23"
-pyspark = ">=3"
+pandas = "*"
+numpy = "*"
+scikit-learn = "*"
+scipy = "*"
 matplotlib = ">=3"
-scikit-learn = ">=0.23"
+pyspark = ">=3"
 spark-pipeline = {editable = true, path = "."}
 pyhocon = "*"
 joblib = "*"
