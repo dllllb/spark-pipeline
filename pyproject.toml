@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "spark-pipeline"
+version = "0.0.4"
+authors = [
+    { name = "Dmitri Babaev", email = "dmitri.babaev@gmail.com" }
+]
+description = "Data Science oriented tools, mostly for Apache Spark"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pandas>=0.23",
+    "numpy",
+    "scikit-learn",
+    "scipy",
+    "matplotlib>=3",
+    "pyspark>=3",
+    "pyhocon",
+    "joblib",
+    "dill"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/dllllb/spark-pipeline"
+
+[tool.hatch.build.targets.wheel]
+packages = ["spark-pipeline"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
+addopts = "-ra -q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pylint",
+    "notebook",
+    "ruff",
+    "tdigest"
+]
