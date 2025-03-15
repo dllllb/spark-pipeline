@@ -30,9 +30,6 @@ dependencies = [
 [project.urls]
 "Homepage" = "https://github.com/dllllb/spark-pipeline"
 
-[tool.hatch.build.targets.wheel]
-packages = ["spark-pipeline"]
-
 [tool.hatch.metadata]
 allow-direct-references = true
 
