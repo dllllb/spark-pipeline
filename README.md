@@ -8,7 +8,11 @@ Data Science oriented tools, mostly for Apache Spark
 
 # Command-line tools
 
-## python -m sparktools.scorer
+## Scorer
+
+```
+uvx --from git+https://github.com/dllllb/spark-pipeline scorer
+```
 
 Use saved model to calculate prediction scores for a large dataset. Calculation is done in parallel on Spark cluster.
 
@@ -33,7 +37,11 @@ Result fields:
 - model_name; model file name
 - current_dt; scoring date + time
 
-## python -m sparktools.trainer
+## Trainer
+
+```
+uvx --from git+https://github.com/dllllb/spark-pipeline trainer
+```
 
 Train an ML model and store it locally in binary form
 
@@ -42,7 +50,11 @@ Required config entries:
 - model definition
 - model write location
 
-## python -m sparktools.mover
+## Mover
+
+```
+uvx --from git+https://github.com/dllllb/spark-pipeline mover
+```
 
 Move data between source and target storages
 
@@ -59,6 +71,7 @@ Source/target storage options:
 - hive (default dataset-store-format from spark)
 
 ### Teradata to Hive example:
+
 ```
 source: {
   storage: jdbc
@@ -84,6 +97,7 @@ spark: {
 ```
 
 ### CSV to Teradata example:
+
 ```
 source: {
   storage: single-csv
@@ -110,6 +124,7 @@ spark: {
 ```
 
 ### Greenplum to Hive example:
+
 ```
 source: {
   storage: jdbc
@@ -146,7 +161,7 @@ Any configuration param can be overridden from console by adding param value in 
 
 Example:
 ```bash
-scorer.py --conf sparks.conf spark.spark-home=/home/spark spark.pyspark-python=/opt/python3/python
+uv run scorer --conf sparks.conf spark.spark-home=/home/spark spark.pyspark-python=/opt/python3/python
 ```
 
 ## Data source definition
@@ -163,6 +178,7 @@ Supported data storages:
     - limit
 
 ### Example JDBC data source:
+
 ```
 source {
   storage: jdbc
@@ -175,7 +191,8 @@ source {
 }
 ```
 
-Example Hive data source:
+### Example Hive data source:
+
 ```
 source: {
   storage: hive
@@ -185,7 +202,8 @@ source: {
 }
 ```
 
-Example local folder target:
+### Example local folder target:
+
 ```
 target: {
   storage: local
@@ -194,7 +212,8 @@ target: {
 }
 ```
 
-Example simple CSV target:
+### Example simple CSV target:
+
 ```
 target: {
   storage: single-csv
@@ -207,6 +226,7 @@ target: {
 Pipeline file location is considered to be relative to the main configuration file directory
 
 ### Example:
+
 ```json
 {
   "train-dataset": {
@@ -219,6 +239,7 @@ Pipeline file location is considered to be relative to the main configuration fi
 ```
 
 ### Load model definition dataset from JDBC data source:
+
 ```hocon
 model-definfition: {
   include model-2015-11.json
