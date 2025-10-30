@@ -54,6 +54,6 @@ dev = [
 packages = ["."]
 
 [project.scripts]
-mover = "sparktools:mover:main"
-scorer = "sparktools:scorer:main"
-trainer = "sparktools:trainer:main"
+mover = "sparktools:mover"
+scorer = "sparktools:scorer"
+trainer = "sparktools:trainer"

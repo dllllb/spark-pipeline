@@ -80,5 +80,4 @@ def main():
     run_scorer(sc, sqc, conf)
 
 
-if __name__ == "__main__":
-    main()
+main()

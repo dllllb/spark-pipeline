@@ -38,5 +38,4 @@ def main():
     print('execution time: {} sec'.format(time.time() - start))
 
 
-if __name__ == "__main__":
-    main()
+main()
