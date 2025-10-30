@@ -53,3 +53,10 @@ dev = [
     "ruff",
     "tdigest"
 ]
+
+[project.scripts]
+s3cache = "cloudcli:s3cache"
+datadiff = "sparktools:datadiff"
+mover = "sparktools:mover"
+scorer = "sparktools:scorer"
+trainer = "sparktools:trainer"
