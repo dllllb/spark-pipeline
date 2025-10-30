@@ -65,7 +65,7 @@ def run_scorer(sc, sqc, conf):
     print('execution time: {} sec'.format(time.time() - start))
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--conf', required=True)
     args, overrides = parser.parse_known_args()
@@ -78,3 +78,7 @@ if __name__ == "__main__":
     sc, sqc = spark_utils.init_session(conf['spark'], app=os.path.basename(args.conf), return_context=True)
 
     run_scorer(sc, sqc, conf)
+
+
+if __name__ == "__main__":
+    main()

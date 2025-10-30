@@ -54,7 +54,6 @@ dev = [
 packages = ["."]
 
 [project.scripts]
-datadiff = "sparktools:datadiff"
 mover = "sparktools:mover"
 scorer = "sparktools:scorer"
 trainer = "sparktools:trainer"
